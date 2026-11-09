@@ -5,7 +5,7 @@
 ## 2026-11-10
 
 - New：对 git 仓库中的 space 按 `cmd-enter`，会为它打开 New worktree 对话框，和 space 右键菜单里的一样；底部在能用的地方显示这个键。以前只能新建标签。不在 git 仓库里的 space 上和选机器的步骤里，它不起作用。运行 `scripts/update.sh` 获取。
-- New：git space 的行尾多了个分支按钮，点它打开 New worktree 对话框，鼠标也能直接打开；点行内其他位置仍是新建标签。
+- New：git space 的行尾多了个带边框的 `New worktree` 按钮，点它打开 New worktree 对话框，鼠标也能直接打开；点行内其他位置仍是新建标签。
 
 ## 2026-11-09
 

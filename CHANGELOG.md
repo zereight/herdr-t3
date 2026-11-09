@@ -5,7 +5,7 @@ English · [中文](CHANGELOG.zh-CN.md)
 ## 2026-11-10
 
 - New: `cmd-enter` on a space in a git repo opens the New worktree dialog for it, as the space's right-click menu does, and the footer shows the key where it works. It used to open a new tab only. It does nothing on a space outside a git repo and on the machines step. Run `scripts/update.sh` to get it.
-- New: a git space's row ends with a branch button that opens the New worktree dialog, so the mouse reaches it too; clicking elsewhere on the row still opens a new tab.
+- New: a git space's row ends with an outlined `New worktree` button that opens the New worktree dialog, so the mouse reaches it too; clicking elsewhere on the row still opens a new tab.
 
 ## 2026-11-09
 

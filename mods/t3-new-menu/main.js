@@ -4,7 +4,7 @@ import { h_flex, v_flex, InputState, Input } from "gpui-base";
 import { theme, spaces, machines, panes, run, exec, openOverlay, closeOverlay, props, home, shared, setShared } from "herdr";
 import { projectMark, placeOf, newTab } from "./project.js";
 import { step, scrollList } from "./list.js";
-import { keyOf, keyLabel, tip, glow } from "./tip.js";
+import { keyOf, keyLabel, glow } from "./tip.js";
 import { stopsInit, stop, focusRoot } from "./focus.js";
 
 // As T3's command item: 6 + a 20px title + a 16px line + 6.
@@ -143,18 +143,20 @@ export default class NewMenu extends View {
       .when(Boolean(s) && i < 9, el => el.child(div().flex_none().text_size(12).font_medium().text_color(t.muted).child(keyLabel(`cmd-${i + 1}`))));
   }
 
-  // A git space's row ends with a worktree button, the mouse's way to what ⌘Enter does: a click opens the dialog, not a tab.
-  // Dim until hovered, as a row's button; pressing it neither picks the row's tab nor moves anything else.
+  // A git space's row ends with a labelled worktree button, the mouse's way to what ⌘Enter does: a click opens the dialog, not a tab.
+  // It names itself and has an outline, so it reads as a button without a hover; pressing it neither picks the row's tab nor moves anything else.
   worktreeButton(item, s, t) {
     const id = `wt:${item.key}`;
-    const el = div().id(id).size(24).flex_none().flex().items_center().justify_center().rounded(8)
-      .text_color(this.hot === id ? t.foreground : t.dim)
+    const el = div().id(id).h(24).px(8).gap(4).flex_none().flex().items_center().justify_center().rounded(8).border(1)
+      .border_color(this.hot === id ? t.foreground + "40" : t.border).text_size(12).font_medium()
+      .text_color(this.hot === id ? t.foreground : t.muted)
       .role("button").accessibility_label("New worktree")
       .on_hover(glow(this, id))
       .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
       .on_click((_e, cx) => { cx.stop_propagation(); this.worktree(s); })
-      .child(svg("mods/t3-new-menu/icons/git-branch.svg").size(14));
-    return tip(this, t, id, "New worktree", stop(this, t, id, el, 8, { enter: () => this.worktree(s) }));
+      .child(svg("mods/t3-new-menu/icons/git-branch.svg").size(14))
+      .child("New worktree");
+    return stop(this, t, id, el, 8, { enter: () => this.worktree(s) });
   }
 
   // The same dialog the space's menu opens for New worktree: it makes the branch and opens the checkout as a new space.
