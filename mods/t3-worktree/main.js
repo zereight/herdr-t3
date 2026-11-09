@@ -20,10 +20,11 @@ const tilde = (path, userHome) => {
   return p.startsWith(h) ? `~${p.slice(h.length)}` : path;
 };
 const slug = (branch) => branch.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
+const PREFIX = "herdr-";
 // A branch name nobody has to think of: a prefix, today, and four random characters so two in a day differ.
 const suggestBranch = () => {
   const d = new Date(), two = (n) => String(n).padStart(2, "0");
-  return `herdr-${two(d.getMonth() + 1)}${two(d.getDate())}-${Math.random().toString(36).slice(2, 6)}`;
+  return `${PREFIX}${two(d.getMonth() + 1)}${two(d.getDate())}-${Math.random().toString(36).slice(2, 6)}`;
 };
 const ago = (s) => {
   const d = Date.now() / 1000 - s;
@@ -127,8 +128,8 @@ export default class Worktree extends View {
     this.input.on("blur", (_e, cx) => { this.inputFocused = false; cx.notify(); });
     if (props()?.action !== "remove") {
       this.input.focus();
-      // New: the suggested name is lit, so typing replaces it, and Enter takes it. Not if they've typed since.
-      const pick = () => { if (this.suggested && this.input.value() === this.suggested) this.input.set_selected_range({ start: 0, end: this.suggested.length }); };
+      // New: what follows the prefix is lit, so typing keeps `herdr-` and replaces the rest, and Enter takes the whole name. Not if they've typed since.
+      const pick = () => { if (this.suggested && this.input.value() === this.suggested) this.input.set_selected_range({ start: PREFIX.length, end: this.suggested.length }); };
       pick();
       cx.timer.after(600, () => { this.input.focus(); pick(); });
     }

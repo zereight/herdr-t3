@@ -20,12 +20,12 @@ vm.runInContext(src, context);
 const open = (p) => { openProps = p; selections.length = 0; timers.length = 0; const m = new context.Mod(); m.init({}, cx); return m; };
 
 (async () => {
-  // A new worktree: herdr-MMDD-xxxx is in the field, all of it lit, and lit again once the dialog has the keyboard for good.
+  // A new worktree: herdr-MMDD-xxxx is in the field, what follows `herdr-` lit, and lit again once the dialog has the keyboard for good.
   let m = open({ space: "s", action: "new" });
   const name = m.input.value();
   assert.match(name, /^herdr-\d{4}-[a-z0-9]{4}$/);
   assert.equal(m.text, name, "what Enter creates is what the field shows");
-  assert.deepEqual(JSON.parse(JSON.stringify(selections)), [{ start: 0, end: name.length }]);
+  assert.deepEqual(JSON.parse(JSON.stringify(selections)), [{ start: "herdr-".length, end: name.length }], "typing keeps the prefix");
   timers.splice(0).forEach((f) => f());
   assert.equal(selections.length, 2);
   // Typed since: the late focus doesn't select what they wrote.
