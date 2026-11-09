@@ -38,7 +38,7 @@ const pending = [], execs = [], repoFolders = new Set();
 const cx = { notify() {}, stop_propagation() {}, spawn: (f) => { pending.push(f(cx)); }, focus_handle: () => ({ focus() {}, is_focused: () => false }) };
 let platform = "macos";
 const context = vm.createContext({
-  View: class {}, div: element, svg: element, h_flex: element, v_flex: element, Input: { new: element },
+  View: class {}, div: element, svg: element, h_flex: element, v_flex: element, Input: { new: element }, Popup: { new: (id, trigger) => element().id(id).child(trigger) },
   InputState: { new: () => { const on = {}; let value = ""; return { on: (e, f) => { on[e] = f; }, value: () => value, focus() {}, set_value(v) { value = v; }, type(v) { value = v; on.change({}, cx); }, submit(e) { on.submit(e ?? {}, cx); } }; } },
   settings: () => ({ zoom: 1 }),
   theme: () => ({ foreground: "#fff" }), spaces: () => spaces, machines: () => machines, panes: () => [], run: (name, args) => calls.push([name, args]),
@@ -169,6 +169,11 @@ openProps = {};
   m.spaceInput.submit({ secondary: true });
   press(m, "enter", true);
   assert.deepEqual(take(), [["overlay", { mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "once, whichever hears it first");
+  // The mouse's way: a git space's row ends with a worktree button; a click opens the dialog, not a tab.
+  m = open();
+  click(m, "wt:space:wa");
+  assert.deepEqual(take(), [["overlay", { mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "the dialog from the row's button");
+  assert.equal(find(list(m), "wt:space:wb"), null, "no button on a space outside git");
   // Plain Enter is still New tab.
   m = open();
   m.spaceInput.submit();
