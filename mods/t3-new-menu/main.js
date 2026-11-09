@@ -178,7 +178,7 @@ export default class NewMenu extends View {
         .child(h_flex().gap(12).items_center()
           .child(hint("↑ ↓", "Navigate"))
           .child(hint("Enter", this.picking ? "New space" : "New tab"))
-          .when(wt, el => el.child(hint(`${wtMod} Enter`, "New worktree")))
+          .when(wt, el => el.child(hint(`${wtMod} Enter`, "Worktree")))
           .child(hint("Esc", "Close")))
         .when(this.picking, el => el.child(stop(this, t, "new-back", footButton("new-back", "Back to spaces").on_click((_e, cx) => this.showMachines(false, cx)).child("← Spaces"), 8)))
         .when(!this.picking, el => el.child(stop(this, t, "space-new", footButton("space-new", "New space").on_click((_e, cx) => this.newSpace(cx))
