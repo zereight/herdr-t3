@@ -2,6 +2,10 @@
 
 English · [中文](CHANGELOG.zh-CN.md)
 
+## 2026-11-10
+
+- New: `cmd-enter` on a space in a git repo opens the New worktree dialog for it, as the space's right-click menu does, and the footer shows the key where it works. It used to open a new tab only. It does nothing on a space outside a git repo and on the machines step. Run `scripts/update.sh` to get it.
+
 ## 2026-11-09
 
 - Settings → Look: Herdr T3's layout card shows what the layout is for. One card that needs you is lit, the rest sit folded in Working. The old picture was the whole window shrunk until it read as noise.

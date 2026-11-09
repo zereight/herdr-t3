@@ -2,6 +2,10 @@
 
 [English](CHANGELOG.md) · 中文
 
+## 2026-11-10
+
+- New：对 git 仓库中的 space 按 `cmd-enter`，会为它打开 New worktree 对话框，和 space 右键菜单里的一样；底部在能用的地方显示这个键。以前只能新建标签。不在 git 仓库里的 space 上和选机器的步骤里，它不起作用。运行 `scripts/update.sh` 获取。
+
 ## 2026-11-09
 
 - 设置 → Look：Herdr T3 的布局卡片直接表达这个布局的用意：只有一张需要你处理的卡片亮着，其余都折叠在 Working 里。旧图是把整个窗口缩小，缩到只剩噪点。

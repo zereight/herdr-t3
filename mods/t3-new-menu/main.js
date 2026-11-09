@@ -1,7 +1,7 @@
 // New: pick the space and open a terminal tab there, or start a new space, on a machine picked as T3 picks an environment.
 import { View, div, svg } from "gpui-kit";
 import { h_flex, v_flex, InputState, Input } from "gpui-base";
-import { theme, spaces, machines, panes, run, closeOverlay, props, home, shared, setShared } from "herdr";
+import { theme, spaces, machines, panes, run, exec, openOverlay, closeOverlay, props, home, shared, setShared } from "herdr";
 import { projectMark, placeOf, newTab } from "./project.js";
 import { step, scrollList } from "./list.js";
 import { keyOf, keyLabel } from "./tip.js";
@@ -12,6 +12,10 @@ const ROW = 48;
 // The list's share of T3's 420 once its border, search, top inset and heading, bottom inset and footer are in; the popup hugs its content.
 const LIST_MAX = 420 - 2 - 48 - 8 - 28 - 8 - 41;
 const STATE = { ready: "Connected", loading: "Loading…", unavailable: "Unavailable" };
+// Whether each place is in a git repo, [machine, folder] -> { repo, at }: shared by every copy of the menu, so reopening it asks nothing within a minute.
+const REPO_TTL = 60000;
+const checked = new Map();
+const placeKey = (s, ps) => JSON.stringify([s.machine ?? null, placeOf(s, ps)]);
 
 export default class NewMenu extends View {
   init(_props, cx) {
@@ -22,11 +26,12 @@ export default class NewMenu extends View {
     const field = (placeholder) => {
       const input = InputState.new({ placeholder });
       input.on("change", (_e, cx) => { this.filter = input.value(); this.at = 0; cx.notify(); });
-      input.on("submit", () => { this.choose(this.items()[this.at]); });
+      input.on("submit", () => { if (Date.now() - (this.worktreeAt ?? -Infinity) < 300) return; this.choose(this.items()[this.at]); });
       return input;
     };
     this.spaceInput = field("Search spaces…");
     this.machineInput = field("Search machines…");
+    this.probe(cx);
     (this.picking ? this.machineInput : this.spaceInput).focus();
   }
 
@@ -59,6 +64,32 @@ export default class NewMenu extends View {
     closeOverlay(props().overlay);
     if (item.space) newTab(item.space);
     else run("space.new", { machine: item.machine ?? "" });
+  }
+
+  // Whether the space's folder is in a git repo, as the last ask of git found: false until it answers.
+  repoOf(s) {
+    return checked.get(placeKey(s, panes()))?.repo ?? false;
+  }
+
+  // Asks git about every space listed, so the highlight lands on an answer; a row is redrawn as its answer comes in.
+  probe(cx) {
+    const ps = panes();
+    for (const s of spaces()) {
+      const folder = placeOf(s, ps), key = placeKey(s, ps), seen = checked.get(key);
+      if (!folder || (seen && Date.now() - seen.at < REPO_TTL)) continue;
+      checked.set(key, { repo: seen?.repo ?? false, at: Date.now() }); // one ask per place at a time
+      cx.spawn(async (cx) => {
+        const r = await exec("git", ["rev-parse", "--show-toplevel"], { cwd: folder, on: s.machine }).catch(() => null);
+        checked.set(key, { repo: r?.code === 0, at: Date.now() });
+        cx.notify();
+      });
+    }
+  }
+
+  // The same dialog the space's menu opens for New worktree: it makes the branch and opens the checkout as a new space.
+  worktree(s) {
+    closeOverlay(props().overlay);
+    openOverlay({ mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: s.id, action: "new" } });
   }
 
   showMachines(on, cx) {
@@ -109,12 +140,25 @@ export default class NewMenu extends View {
     const hint = (label, what) => h_flex().gap(4).items_center().children(label.split(" ").map(key)).child(what);
     // ⌘N doesn't ask: it only names what this button does when there's nothing to ask.
     const newKey = this.machineRows().length > 1 ? "" : keyOf("space.new");
+    // The worktree a space can have is a git repo's; the hint shows only where ⌘Enter does something.
+    const at = this.picking ? null : items[this.at];
+    const lit = at && "space" in at ? at.space : null;
+    const wt = Boolean(lit) && this.repoOf(lit);
+    const wtMod = keyLabel("cmd-enter").replace(/\+?Enter$/, "");
     // T3's CommandFooterAction: no fill of its own, its words brighten.
     const footButton = (id, label) => h_flex().id(id).gap(4).px(8).rounded(8).items_center().flex_none().text_size(12).line_height("16px")
       .role("button").accessibility_label(label).hover(s => s.text_color(t.foreground));
     return focusRoot(this, v_flex().id("new-menu").size_full().min_h(0).rounded(16).border(1).border_color(t.border).bg(t.popover).shadow_2xl().text_size(14).line_height("20px")
       .on_key_down((e, cx) => {
         if (e.key === "escape") return closeOverlay(props().overlay);
+        // ⌘Enter on a space in a git repo opens the worktree dialog there; elsewhere it does nothing. The field also submits this
+        // Enter, which would be New tab, so that submit is told apart by when it came.
+        if (e.key === "enter" && e.modifiers.platform) {
+          cx.stop_propagation();
+          this.worktreeAt = Date.now();
+          if (wt) this.worktree(lit);
+          return;
+        }
         const to = step(e, this.at, items.length);
         if (to >= 0) this.at = to;
         else if (!this.picking && /^[1-9]$/.test(e.key) && e.modifiers.platform) { cx.stop_propagation(); return this.choose(items[Number(e.key) - 1]); }
@@ -134,6 +178,7 @@ export default class NewMenu extends View {
         .child(h_flex().gap(12).items_center()
           .child(hint("↑ ↓", "Navigate"))
           .child(hint("Enter", this.picking ? "New space" : "New tab"))
+          .when(wt, el => el.child(hint(`${wtMod} Enter`, "New worktree")))
           .child(hint("Esc", "Close")))
         .when(this.picking, el => el.child(stop(this, t, "new-back", footButton("new-back", "Back to spaces").on_click((_e, cx) => this.showMachines(false, cx)).child("← Spaces"), 8)))
         .when(!this.picking, el => el.child(stop(this, t, "space-new", footButton("space-new", "New space").on_click((_e, cx) => this.newSpace(cx))

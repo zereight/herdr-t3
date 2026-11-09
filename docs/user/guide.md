@@ -51,6 +51,8 @@ The layout's own, in the `layout:herdr-t3` section of `keys.json` (an install me
 
 With a dialog or popup open (Go to, New, a menu, Settings, the command palette, the Actions editor and the like), these close-tab and close-pane keys close it instead, as in Herdr's own layout (the `mod:…` sections of `keys.json`).
 
+In New, `cmd-enter` on a space in a git repo opens Herdr's New worktree dialog for it: type a branch name and the checkout opens as a new space under that repo, branching from where the space's checkout is now. On a space that isn't in a git repo, or on the machines step, it does nothing, and the footer shows the key only where it works.
+
 Otherwise tabs, spaces and panes keep Herdr's own keys. Pinning and dragging in Inbox are by mouse; Clear takes the keyboard as other buttons do.
 
 By keyboard: move onto a sidebar list with Herdr's `pane.go` and Tab walks every control in the window, the Review bar's counts and logo included, with Enter or Space doing what a click does. In New and Go to, Tab also reaches the footer's buttons (New space, `← Spaces`, New tab).

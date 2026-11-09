@@ -51,6 +51,8 @@
 
 有对话框或弹窗开着时（Go to、New、菜单、Settings、命令面板、Actions 编辑器等），这几个关闭标签和窗格的键改为关掉它，和 Herdr 自带布局一样（`keys.json` 里的 `mod:…` 分区）。
 
+在 New 里，对 git 仓库中的 space 按 `cmd-enter`，会为它打开 Herdr 的 New worktree 对话框：输入分支名，checkout 就作为新 space 开在这个仓库下，分支从该 space 的 checkout 当前所在处切出。不在 git 仓库里的 space 上，或在选机器的步骤里，这个键不起作用；底部只在它能用的地方显示这个键。
+
 其他标签、space 和窗格操作沿用 Herdr 自己的快捷键。Inbox 里的置顶和拖动用鼠标；Clear 和其他按钮一样能用键盘。
 
 键盘操作：用 Herdr 的 `pane.go` 移到侧栏列表后，Tab 能走遍窗口里的所有控件，包括 Review 栏的计数段和 logo，Enter 或 Space 和点击效果相同。在新建菜单和跳转里，Tab 还能走到底部按钮（New space、`← Spaces`、New tab）。

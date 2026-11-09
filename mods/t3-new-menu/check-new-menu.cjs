@@ -34,14 +34,15 @@ const text = (n) => typeof n === "string" ? n : n?.items ? n.items.map(text).joi
 let spaces, machines;
 let openProps = {};
 const calls = [], state = {};
-const cx = { notify() {}, stop_propagation() {}, focus_handle: () => ({ focus() {}, is_focused: () => false }) };
+const pending = [], execs = [], repoFolders = new Set();
+const cx = { notify() {}, stop_propagation() {}, spawn: (f) => { pending.push(f(cx)); }, focus_handle: () => ({ focus() {}, is_focused: () => false }) };
 let platform = "macos";
 const context = vm.createContext({
   View: class {}, div: element, svg: element, h_flex: element, v_flex: element, Input: { new: element },
-  InputState: { new: () => { const on = {}; let value = ""; return { on: (e, f) => { on[e] = f; }, value: () => value, focus() {}, set_value(v) { value = v; }, type(v) { value = v; on.change({}, cx); } }; } },
+  InputState: { new: () => { const on = {}; let value = ""; return { on: (e, f) => { on[e] = f; }, value: () => value, focus() {}, set_value(v) { value = v; }, type(v) { value = v; on.change({}, cx); }, submit() { on.submit({}, cx); } }; } },
   settings: () => ({ zoom: 1 }),
   theme: () => ({ foreground: "#fff" }), spaces: () => spaces, machines: () => machines, panes: () => [], run: (name, args) => calls.push([name, args]),
-  shared: (k) => state[k], setShared: (k, v) => { state[k] = v; }, closeOverlay() {}, props: () => ({ overlay: "o", ...openProps }), window: () => ({ platform }), keys: () => [{ section: "global", keys: "cmd-n", action: "space.new" }], home: () => "/home/me", projectMark: element, placeOf: (s) => s.folder, newTab: (s) => calls.push(["tab.new", { space: s.id, folder: s.folder }]),
+  shared: (k) => state[k], setShared: (k, v) => { state[k] = v; }, closeOverlay() {}, openOverlay: (spec) => calls.push(["overlay", spec]), exec: async (cmd, args, opts) => { execs.push(opts); return { code: repoFolders.has(opts.cwd) ? 0 : 128 }; }, props: () => ({ overlay: "o", ...openProps }), window: () => ({ platform }), keys: () => [{ section: "global", keys: "cmd-n", action: "space.new" }], home: () => "/home/me", projectMark: element, placeOf: (s) => s.folder, newTab: (s) => calls.push(["tab.new", { space: s.id, folder: s.folder }]),
 });
 const src = ["list.js", "tip.js", "focus.js", "main.js"].map((f) => fs.readFileSync(path.join(__dirname, f), "utf8")).join("\n").replace(/^import .*;\r?\n/gm, "").replace(/^export (function|const) /gm, "$1 ").replace("export default class", "globalThis.Mod = class");
 vm.runInContext(src, context);
@@ -145,4 +146,41 @@ assert.ok(state["t3-new-menu.closed"] && !state["t3-new-menu.pickClosed"]);
 openProps = { pick: true }; open().close();
 assert.ok(state["t3-new-menu.pickClosed"]);
 openProps = {};
-console.log("ok new menu");
+
+// ⌘Enter opens the worktree dialog on a space in a git repo, and does nothing on one that isn't; the field's own submit of that Enter is not New tab.
+(async () => {
+  const settle = () => Promise.all(pending.splice(0));
+  machines = [{ name: null, layout: "ready" }];
+  // Places the checks above haven't asked about, as the answers are kept for a minute.
+  spaces = [local("wa", true), local("wb")];
+  repoFolders.add("/home/me/wa");
+  await settle();
+  execs.length = 0;
+  m = open();
+  assert.ok(!text(m.render()).includes("New worktree"), "no hint before git has answered");
+  await settle();
+  assert.ok(text(m.render()).includes("New worktree"), "the hint where ⌘Enter does something");
+  assert.deepEqual(execs.splice(0).map((e) => e.cwd).sort(), ["/home/me/wa", "/home/me/wb"], "git is asked once per space");
+  press(m, "enter", true);
+  m.spaceInput.submit();
+  assert.deepEqual(take(), [["overlay", { mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "the dialog, and no New tab from the field's submit");
+  // Plain Enter is still New tab.
+  m = open();
+  m.spaceInput.submit();
+  assert.deepEqual(take(), [["tab.new", { space: "wa", folder: "/home/me/wa" }]]);
+  // A space outside a repo: no hint, and ⌘Enter does nothing, not even a New tab.
+  m = open();
+  press(m, "down");
+  assert.ok(!text(m.render()).includes("New worktree"));
+  press(m, "enter", true);
+  m.spaceInput.submit();
+  assert.deepEqual(take(), []);
+  assert.deepEqual(execs, [], "an answer under a minute old is not asked for again");
+  // On the machines step there are no spaces to make a worktree of.
+  openProps = { pick: true };
+  m = open();
+  press(m, "enter", true);
+  assert.deepEqual(take(), []);
+  openProps = {};
+  console.log("ok new menu");
+})().catch((e) => { console.error(e); process.exit(1); });
