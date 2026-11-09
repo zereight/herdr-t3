@@ -21,6 +21,7 @@ export default class NewMenu extends View {
   init(_props, cx) {
     stopsInit(this, cx, "modal");
     this.at = 0;
+    this.hot = null; // the worktree button the pointer is on, if any
     this.filter = "";
     this.picking = Boolean(props()?.pick); // choosing the machine for a new space; the sidebar's New space opens here
     const field = (placeholder) => {
