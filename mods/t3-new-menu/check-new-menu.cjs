@@ -39,7 +39,7 @@ const cx = { notify() {}, stop_propagation() {}, spawn: (f) => { pending.push(f(
 let platform = "macos";
 const context = vm.createContext({
   View: class {}, div: element, svg: element, h_flex: element, v_flex: element, Input: { new: element },
-  InputState: { new: () => { const on = {}; let value = ""; return { on: (e, f) => { on[e] = f; }, value: () => value, focus() {}, set_value(v) { value = v; }, type(v) { value = v; on.change({}, cx); }, submit() { on.submit({}, cx); } }; } },
+  InputState: { new: () => { const on = {}; let value = ""; return { on: (e, f) => { on[e] = f; }, value: () => value, focus() {}, set_value(v) { value = v; }, type(v) { value = v; on.change({}, cx); }, submit(e) { on.submit(e ?? {}, cx); } }; } },
   settings: () => ({ zoom: 1 }),
   theme: () => ({ foreground: "#fff" }), spaces: () => spaces, machines: () => machines, panes: () => [], run: (name, args) => calls.push([name, args]),
   shared: (k) => state[k], setShared: (k, v) => { state[k] = v; }, closeOverlay() {}, openOverlay: (spec) => calls.push(["overlay", spec]), exec: async (cmd, args, opts) => { execs.push(opts); return { code: repoFolders.has(opts.cwd) ? 0 : 128 }; }, props: () => ({ overlay: "o", ...openProps }), window: () => ({ platform }), keys: () => [{ section: "global", keys: "cmd-n", action: "space.new" }], home: () => "/home/me", projectMark: element, placeOf: (s) => s.folder, newTab: (s) => calls.push(["tab.new", { space: s.id, folder: s.folder }]),
@@ -164,6 +164,11 @@ openProps = {};
   press(m, "enter", true);
   m.spaceInput.submit();
   assert.deepEqual(take(), [["overlay", { mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "the dialog, and no New tab from the field's submit");
+  // The field may hear it first, with `secondary` set: one dialog all the same, and the key handler after it adds nothing.
+  m = open();
+  m.spaceInput.submit({ secondary: true });
+  press(m, "enter", true);
+  assert.deepEqual(take(), [["overlay", { mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "once, whichever hears it first");
   // Plain Enter is still New tab.
   m = open();
   m.spaceInput.submit();

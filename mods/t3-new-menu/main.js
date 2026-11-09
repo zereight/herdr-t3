@@ -26,7 +26,7 @@ export default class NewMenu extends View {
     const field = (placeholder) => {
       const input = InputState.new({ placeholder });
       input.on("change", (_e, cx) => { this.filter = input.value(); this.at = 0; cx.notify(); });
-      input.on("submit", () => { if (Date.now() - (this.worktreeAt ?? -Infinity) < 300) return; this.choose(this.items()[this.at]); });
+      input.on("submit", (e) => { if (this.recentWorktree()) return; if (e?.secondary) return this.worktreeKey(); this.choose(this.items()[this.at]); });
       return input;
     };
     this.spaceInput = field("Search spaces…");
@@ -86,11 +86,19 @@ export default class NewMenu extends View {
     }
   }
 
-  // The same dialog the space's menu opens for New worktree: it makes the branch and opens the checkout as a new space.
-  worktree(s) {
+  // ⌘Enter, whichever of the key handler and the field's submit (`secondary`) hears it first; the other is ignored. On a space in a git
+  // repo it opens the dialog the space's menu opens for New worktree, which makes the branch and opens the checkout as a new space.
+  // Elsewhere it does nothing, and the field's Enter is not New tab either.
+  worktreeKey() {
+    if (this.recentWorktree()) return;
+    this.worktreeAt = Date.now();
+    const item = /** @type {any} */ (this.picking ? null : this.items()[this.at]);
+    if (!item?.space || !this.repoOf(item.space)) return;
     closeOverlay(props().overlay);
-    openOverlay({ mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: s.id, action: "new" } });
+    openOverlay({ mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: item.space.id, action: "new" } });
   }
+
+  recentWorktree() { return Date.now() - (this.worktreeAt ?? -Infinity) < 300; }
 
   showMachines(on, cx) {
     this.picking = on;
@@ -151,14 +159,8 @@ export default class NewMenu extends View {
     return focusRoot(this, v_flex().id("new-menu").size_full().min_h(0).rounded(16).border(1).border_color(t.border).bg(t.popover).shadow_2xl().text_size(14).line_height("20px")
       .on_key_down((e, cx) => {
         if (e.key === "escape") return closeOverlay(props().overlay);
-        // ⌘Enter on a space in a git repo opens the worktree dialog there; elsewhere it does nothing. The field also submits this
-        // Enter, which would be New tab, so that submit is told apart by when it came.
-        if (e.key === "enter" && e.modifiers.platform) {
-          cx.stop_propagation();
-          this.worktreeAt = Date.now();
-          if (wt) this.worktree(lit);
-          return;
-        }
+        // ⌘Enter: see worktreeKey. The field submits the same Enter, so whichever hears it first acts and the other is ignored.
+        if (e.key === "enter" && e.modifiers.platform) { cx.stop_propagation(); return this.worktreeKey(); }
         const to = step(e, this.at, items.length);
         if (to >= 0) this.at = to;
         else if (!this.picking && /^[1-9]$/.test(e.key) && e.modifiers.platform) { cx.stop_propagation(); return this.choose(items[Number(e.key) - 1]); }
