@@ -51,7 +51,7 @@
 
 有对话框或弹窗开着时（Go to、New、菜单、Settings、命令面板、Actions 编辑器等），这几个关闭标签和窗格的键改为关掉它，和 Herdr 自带布局一样（`keys.json` 里的 `mod:…` 分区）。
 
-在 New 里，对 git 仓库中的 space 按 `cmd-enter`，会为它打开 Herdr 的 New worktree 对话框：输入分支名，checkout 就作为新 space 开在这个仓库下，分支从该 space 的 checkout 当前所在处切出。用鼠标时，git space 的行尾有个带边框的 `New worktree` 按钮，点它打开同一个对话框；点行内其他位置仍是新建标签。不在 git 仓库里的 space 上，或在选机器的步骤里，这个键不起作用；底部只在它能用的地方显示这个键。
+在 New 里，对 git 仓库中的 space 按 `cmd-enter`，会为它打开 Herdr 的 New worktree 对话框：分支名已经填好（`herdr-`、日期和四位随机字符，如 `herdr-1110-k3x9`）并处于选中状态，所以按 Enter 就用它，直接打字则替换它。checkout 作为新 space 开在这个仓库下，分支从该 space 的 checkout 当前所在处切出。用鼠标时，git space 的行尾有个带边框的 `New worktree` 按钮，点它打开同一个对话框；点行内其他位置仍是新建标签。不在 git 仓库里的 space 上，或在选机器的步骤里，这个键不起作用；底部只在它能用的地方显示这个键。
 
 其他标签、space 和窗格操作沿用 Herdr 自己的快捷键。Inbox 里的置顶和拖动用鼠标；Clear 和其他按钮一样能用键盘。
 

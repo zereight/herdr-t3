@@ -162,7 +162,7 @@ export default class NewMenu extends View {
   // The same dialog the space's menu opens for New worktree: it makes the branch and opens the checkout as a new space.
   worktree(s) {
     closeOverlay(props().overlay);
-    openOverlay({ mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: s.id, action: "new" } });
+    openOverlay({ mod: "t3-worktree", kind: "dialog", width: 440, height: 260, props: { space: s.id, action: "new" } });
   }
 
   render() {

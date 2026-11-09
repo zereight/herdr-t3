@@ -143,6 +143,12 @@
     "cmd-shift-w": "overlay.close",
     "ctrl-alt-x": "overlay.close"
   },
+  "mod:t3-worktree": {
+    "cmd-w": "overlay.close",
+    "ctrl-alt-shift-x": "overlay.close",
+    "cmd-shift-w": "overlay.close",
+    "ctrl-alt-x": "overlay.close"
+  },
   "mod:worktree": {
     "cmd-w": "overlay.close",
     "ctrl-alt-shift-x": "overlay.close",

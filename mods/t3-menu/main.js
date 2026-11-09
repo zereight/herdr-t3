@@ -124,7 +124,7 @@ export default class Menu extends View {
     const it = /** @type {any} */ (items(props(), this.git)[i]);
     if (!it) return;
     closeOverlay(props()?.overlay);
-    if (it[1] === "worktree") openOverlay({ mod: "worktree", kind: "dialog", ...(it[2].action === "open" ? { width: 560, height: 480 } : { width: 440, height: 260 }), props: it[2] });
+    if (it[1] === "worktree") openOverlay({ mod: "t3-worktree", kind: "dialog", ...(it[2].action === "open" ? { width: 560, height: 480 } : { width: 440, height: 260 }), props: it[2] });
     // The item keeps Herdr's command, for its icon, its divider and its key; only where it goes changes.
     else if (it[1] === "tab.close") run(`t3-tabs.close-tab:${it[2].id}`);
     else if (it[1] === "pane.close") run(`t3-tabs.close-pane:${it[2].pane}`);

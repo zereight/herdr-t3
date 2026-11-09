@@ -163,16 +163,16 @@ openProps = {};
   assert.deepEqual(execs.splice(0).map((e) => e.cwd).sort(), ["/home/me/wa", "/home/me/wb"], "git is asked once per space");
   press(m, "enter", true);
   m.spaceInput.submit();
-  assert.deepEqual(take(), [["overlay", { mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "the dialog, and no New tab from the field's submit");
+  assert.deepEqual(take(), [["overlay", { mod: "t3-worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "the dialog, and no New tab from the field's submit");
   // The field may hear it first, with `secondary` set: one dialog all the same, and the key handler after it adds nothing.
   m = open();
   m.spaceInput.submit({ secondary: true });
   press(m, "enter", true);
-  assert.deepEqual(take(), [["overlay", { mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "once, whichever hears it first");
+  assert.deepEqual(take(), [["overlay", { mod: "t3-worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "once, whichever hears it first");
   // The mouse's way: a git space's row ends with a worktree button; a click opens the dialog, not a tab.
   m = open();
   click(m, "wt:space:wa");
-  assert.deepEqual(take(), [["overlay", { mod: "worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "the dialog from the row's button");
+  assert.deepEqual(take(), [["overlay", { mod: "t3-worktree", kind: "dialog", width: 440, height: 260, props: { space: "wa", action: "new" } }]], "the dialog from the row's button");
   assert.equal(find(list(m), "wt:space:wb"), null, "no button on a space outside git");
   // Plain Enter is still New tab.
   m = open();
