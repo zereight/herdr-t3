@@ -4,6 +4,7 @@
 
 ## 2026-11-10
 
+- Agent 名字更好读，并显示为韩语：omp 的标题标记（`π >`、状态符号和会话图标）不再显示；agent 自己的标题不是韩语时，由 `claude -p`（Haiku，用你自己的登录，不开工具）每次几条地译成韩语，存在 `shared("t3-korean.names")`，在 Agents 列表、标签、窗格标题、Inbox 和跳转里显示。结果回来之前、或没有 `claude` 时，标题照原样显示。当前可见的标题会经你的 Claude 登录发给 Anthropic。你自己命名的标签和已是韩语的标题不动。双击 Agents 列表里的 agent 行，会重命名它所在的标签，和双击标签一样。运行 `scripts/update.sh` 获取。
 - Agents 按 space 分组时：worktree 的分组挂在它所属 checkout 的分组下面，和 Spaces 一样：再缩进一级，标记用分支图标。checkout 自己没有 agent 时也会有标题，worktree 不再像一个独立项目。折叠 checkout 会连它的 worktree 一起折叠（正在看的那个仍显示）。运行 `scripts/update.sh` 获取。
 - Agents 按 space 分组时：space 标题下的 agent 及其子 agent 缩进 12px，列表读起来是文件夹 > 行。按优先级的分组和 `Pinned` 不缩进。运行 `scripts/update.sh` 获取。
 - New：对 git 仓库中的 space 按 `cmd-enter`，会为它打开 New worktree 对话框，和 space 右键菜单里的一样；底部在能用的地方显示这个键。以前只能新建标签。不在 git 仓库里的 space 上和选机器的步骤里，它不起作用。运行 `scripts/update.sh` 获取。

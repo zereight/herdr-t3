@@ -11,6 +11,7 @@ import { stopsInit, stopsEnd, stop, focusRoot, within } from "./focus.js";
 import { sidebarParts } from "./sidebar.js";
 import { navigation } from "./navigation.js";
 import { newTab } from "./project.js";
+import { koreanNames } from "./korean.js";
 
 const inboxShown = () => sidebarParts(layout()).stack?.active === "inbox";
 
@@ -70,6 +71,8 @@ export default class Tabs extends View {
     });
     this.dragKeys = cx.focus_handle();
     if (props()?.part !== "measure") stopsInit(this, cx);
+    // Its copy alone also has the agents' titles put into Korean (korean.js).
+    if (!props()?.part) koreanNames(cx);
     // Only the tab strip's copy answers every person's way to close: the layout's other parts would each open a dialog.
     if (!props()?.part) cx.spawn(async (cx) => {
       for (;;) {

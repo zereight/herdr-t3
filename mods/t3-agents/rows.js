@@ -231,10 +231,13 @@ export function agentEntries(view, t, { list, all, shown, ps, now, viewing, byPr
       .opacity(st === "working" && !on && !offer ? 0.7 : 1)
       .when(on, (el) => el.bg(t.selected))
       .child(ghost ? lead : lead.id(`agent-fold-${a.address}`)
-        .when(subs.length > 0, el => el.role("button").accessibility_label(view.isFolded(a.address) ? "Expand sub-agents" : "Collapse sub-agents").on_click((_e, cx) => {
-          cx.stop_propagation();
-          view.toggleFold(a.address, cx);
-        })))
+        .when(subs.length > 0, el => el.role("button").accessibility_label(view.isFolded(a.address) ? "Expand sub-agents" : "Collapse sub-agents")
+          // The press is the arrow's: it doesn't reach the row's double-click, which would rename the tab as well.
+          .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
+          .on_click((_e, cx) => {
+            cx.stop_propagation();
+            view.toggleFold(a.address, cx);
+          })))
       .child(h_flex().flex_1().min_w(0).gap(10).items_center()
         .child(div().min_w(0).truncate().when(on || st === "blocked" || st === "done", (el) => el.font_medium()).text_color(leads ? t.foreground : t.muted).child(name))
         .when(Boolean(where), el => el.child(div().flex_1().flex_shrink(1000).min_w(0).truncate().text_size(12).text_color(t.dim).child(where))))
@@ -259,6 +262,12 @@ export function agentEntries(view, t, { list, all, shown, ps, now, viewing, byPr
         cx.notify();
       })
       .on_mouse_move((e) => detailsAt(view, a.address, e))
+      // Double-click renames the tab the agent is in, as double-clicking the tab does; not over a control in the row.
+      .on_mouse_down("left", (e, cx) => {
+        if (e.click_count !== 2 || view.hot) return;
+        detailsFor(view, null, cx);
+        run("tab.rename", { id: a.tab });
+      })
       .on_click((_e, cx) => {
         // As a T3 tooltip, a click takes its card down until the pointer comes back.
         detailsFor(view, null, cx);
