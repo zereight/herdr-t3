@@ -14,6 +14,8 @@ import { MOTION, foldArrow } from "./motion.js";
 
 // T3's one-line row and shelf or folder header, its folders 8 apart and its list's 1px between items (gap-px).
 const ROW = 36, HEAD = 32, HEAD_GAP = 8;
+// Under a space's folder header its agents step in this far, so the list reads as folder > rows. Priority sections and Pinned stay flush.
+const INDENT = 12;
 export const STACK = 1;
 export const RANK = { blocked: 4, done: 3, working: 2, idle: 1 };
 export const SECTION = { 4: "Needs you", 3: "Done", 2: "Working", 1: "Idle" };
@@ -107,11 +109,12 @@ export function agentStatus(view, t, a, note = "", id) {
 }
 
 export function agentEntries(view, t, { list, all, shown, ps, now, viewing, byPriority, own, shownStatus, groups }) {
-  const withKids = (a) => {
+  const withKids = (a, inset = 0) => {
+    const at = (el) => (inset ? div().flex_none().pl(inset).child(el) : el);
     const subs = agentTree(all, a.address);
-    const r = { key: a.address, h: ROW + STACK, el: row(a, subs), ghost: () => row(a, subs, true) };
+    const r = { key: a.address, h: ROW + STACK, el: at(row(a, subs)), ghost: () => at(row(a, subs, true)) };
     // A sub-agent with no pane of its own isn't in agents(): it's placed by the agent it hangs from, and has no branch to name, as its folder may be another worktree.
-    const sub = (s) => ({ key: `sub-${s.t.address}`, h: ROW + STACK, el: agentSubRow(view, t, s, shown, (name, key) => details(list.find((x) => x.address === s.t.address) ?? { ...s.t, space: a.space, space_name: a.space_name }, name, key)), ghost: () => agentSubRow(view, t, s, shown, null, true) });
+    const sub = (s) => ({ key: `sub-${s.t.address}`, h: ROW + STACK, el: at(agentSubRow(view, t, s, shown, (name, key) => details(list.find((x) => x.address === s.t.address) ?? { ...s.t, space: a.space, space_name: a.space_name }, name, key))), ghost: () => at(agentSubRow(view, t, s, shown, null, true)) });
     if (!view.isFolded(a.address)) return [r, ...subs.map(sub)];
     // Folded, a sub-agent that needs the person still shows, hung straight from its parent.
     const stuck = subs.filter((s) => kidStatus(s.t, view.listed) === "blocked");
@@ -293,20 +296,24 @@ export function agentEntries(view, t, { list, all, shown, ps, now, viewing, byPr
       .on_click((_e, cx) => view.toggleFold(g.id, cx, g.id === "sec-1"))));
   };
   // A space's group, as T3's project folder: its mark and name; closed, how many it hides and a dot if one of them wants you.
-  // Right-click: the space's menu, as in Spaces.
+  // A worktree's group (g.parent) hangs under its checkout's, as in Spaces: stepped in, with the branch icon for its mark.
+  // A closed checkout hides its worktrees' agents too. Right-click: the space's menu, as in Spaces.
   const folder = (g, open, ghost) => {
-    const hiding = open ? [] : g.members.filter((a) => !viewing(a));
+    const hiding = (open ? [] : [...g.members, ...(g.kids ?? []).flatMap((k) => k.members)]).filter((a) => !viewing(a));
     const top = hiding.map(shownStatus).reduce((m, s) => ((RANK[s] ?? 0) > (RANK[m] ?? 0) ? s : m), null);
     const dot = top && top !== "idle";
     const space = spaces().find((s) => s.id === g.space) ?? { name: g.label };
     const base = h_flex()
       .px(10)
+      .pl(10 + (g.parent ? INDENT : 0))
       .h(HEAD)
       .flex_none()
       .gap(10)
       .items_center()
       .rounded(8)
-      .child(projectMark(space, 16, t, ps, true))
+      .child(g.parent
+        ? h_flex().size(16).flex_none().items_center().justify_center().child(svg("mods/t3-agents/icons/git-branch.svg").size(14).flex_none().text_color(t.dim))
+        : projectMark(space, 16, t, ps, true))
       .child(div().flex_1().min_w(0).truncate().font_medium().text_color(t.foreground + "e6").child(g.label))
       .when(Boolean(dot), (el) => el.child(div().size(6).flex_none().rounded_full().bg(t[top]).role("status").accessibility_label(SECTION[RANK[top]])))
       .when(hiding.length > 0, (el) => el.child(div().flex_none().text_size(12).text_color(t.dim).child(String(hiding.length))))
@@ -318,14 +325,20 @@ export function agentEntries(view, t, { list, all, shown, ps, now, viewing, byPr
       .active((s) => s.bg(t.selected))
       .role("button").accessibility_label(`${open ? "Collapse" : "Expand"} ${g.label}`)
       .on_click((_e, cx) => view.toggleFold(g.id, cx, false))
-      .on_mouse_down("right", () => openOverlay({ mod: "t3-menu", kind: "popup", width: 220, height: 260, props: { tab: "space", target: { id: g.space } } }))), 8);
+      .on_mouse_down("right", () => g.space && openOverlay({ mod: "t3-menu", kind: "popup", width: 220, height: 260, props: { tab: "space", target: { id: g.space } } }))), 8);
   };
   // A closed group still shows the row you're on, as T3's route row, and hints at the rest.
+  const folderish = (g) => Boolean(g.space || g.synthetic);
   const entries = groups.flatMap((g, i) => {
-    const open = !view.isFolded(g.id, g.id === "sec-1");
-    const head = (ghost) => g.space ? div().flex_none().when(i > 0, (el) => el.pt(HEAD_GAP)).child(folder(g, open, ghost)) : shelf(g, open, ghost);
-    return [{ key: `m:${g.id}`, h: HEAD + STACK + (g.space && i ? HEAD_GAP : 0), el: head(false), ghost: () => head(true) },
-      ...(open ? g.members : g.members.filter(viewing)).flatMap(withKids)];
+    // A closed checkout takes its worktrees in with it, bar the one you're on.
+    const parentOpen = !g.parent || !view.isFolded(g.parent.id, false);
+    if (!parentOpen && !g.members.some(viewing)) return [];
+    const open = parentOpen && !view.isFolded(g.id, g.id === "sec-1");
+    const gap = folderish(g) && i && !g.parent ? HEAD_GAP : 0;
+    const head = (ghost) => folderish(g) ? div().flex_none().when(gap > 0, (el) => el.pt(HEAD_GAP)).child(folder(g, open, ghost)) : shelf(g, open, ghost);
+    const inset = g.parent ? 2 * INDENT : g.space ? INDENT : 0;
+    return [{ key: `m:${g.id}`, h: HEAD + STACK + gap, el: head(false), ghost: () => head(true) },
+      ...(open ? g.members : g.members.filter(viewing)).flatMap((a) => withKids(a, inset))];
   });
 
   return entries;

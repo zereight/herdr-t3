@@ -210,6 +210,14 @@ export default class Spaces extends View {
       }
       this.ordering.machines = [...moved];
     }
+    // Agents' list nests a worktree's group the same way: worktree space -> the checkout space it hangs under (null: not open, a row stands for it).
+    const hung = {};
+    let top = null;
+    for (const r of out) {
+      if (r.tree == null) top = r;
+      else if (top) hung[r.w.id] = { parent: top.head ? null : top.w.id, repo: top.g.repo, name: top.head ? top.g.name : top.w.name };
+    }
+    if (JSON.stringify(hung) !== JSON.stringify(shared("space.worktrees") ?? {})) setShared("space.worktrees", hung);
     return out.filter(r => (r.head || this.shown.has(r.w.id)) && !r.folded && r.w.id !== homeId);
   }
 

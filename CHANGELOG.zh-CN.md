@@ -4,6 +4,8 @@
 
 ## 2026-11-10
 
+- Agents 按 space 分组时：worktree 的分组挂在它所属 checkout 的分组下面，和 Spaces 一样：再缩进一级，标记用分支图标。checkout 自己没有 agent 时也会有标题，worktree 不再像一个独立项目。折叠 checkout 会连它的 worktree 一起折叠（正在看的那个仍显示）。运行 `scripts/update.sh` 获取。
+- Agents 按 space 分组时：space 标题下的 agent 及其子 agent 缩进 12px，列表读起来是文件夹 > 行。按优先级的分组和 `Pinned` 不缩进。运行 `scripts/update.sh` 获取。
 - New：对 git 仓库中的 space 按 `cmd-enter`，会为它打开 New worktree 对话框，和 space 右键菜单里的一样；底部在能用的地方显示这个键。以前只能新建标签。不在 git 仓库里的 space 上和选机器的步骤里，它不起作用。运行 `scripts/update.sh` 获取。
 - New：git space 的行尾多了个带边框的 `New worktree` 按钮，点它打开 New worktree 对话框，鼠标也能直接打开；点行内其他位置仍是新建标签。
 - New worktree：分支名替你填好了，`herdr-`、日期和四位随机字符（`herdr-1110-k3x9`），`herdr-` 之后的部分处于选中状态：按 Enter 就用这个名字，直接打字则保留前缀、替换其余部分。以前打开时是空的。New 菜单的按钮和按键，以及 space 右键菜单，现在都打开 `t3-worktree`（Herdr 自带 worktree 对话框的副本）；Open worktree 和 Remove worktree 照旧。运行 `scripts/update.sh` 获取它和它需要的按键分区。

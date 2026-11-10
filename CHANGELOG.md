@@ -4,6 +4,8 @@ English · [中文](CHANGELOG.zh-CN.md)
 
 ## 2026-11-10
 
+- Agents, grouped by space: a worktree's group hangs under its checkout's, as in Spaces: stepped in again, with the branch icon for its mark. A checkout with no agents of its own still gets its header, so a worktree no longer reads as a project of its own. Folding the checkout folds its worktrees too (the one you're on stays). Run `scripts/update.sh` to get it.
+- Agents, grouped by space: the agents under a space's header, and their sub-agents, step in 12px, so the list reads as folder > rows. Priority sections and `Pinned` stay flush. Run `scripts/update.sh` to get it.
 - New: `cmd-enter` on a space in a git repo opens the New worktree dialog for it, as the space's right-click menu does, and the footer shows the key where it works. It used to open a new tab only. It does nothing on a space outside a git repo and on the machines step. Run `scripts/update.sh` to get it.
 - New: a git space's row ends with an outlined `New worktree` button that opens the New worktree dialog, so the mouse reaches it too; clicking elsewhere on the row still opens a new tab.
 - New worktree: the branch name is filled in for you, `herdr-` and the date and four random characters (`herdr-1110-k3x9`), with what follows `herdr-` selected: Enter takes the name, typing keeps the prefix and replaces the rest. It used to open empty. This goes for the New menu's button and key and for a space's right-click menu, which now open `t3-worktree`, a copy of Herdr's worktree dialog; Open worktree and Remove worktree work as before. Run `scripts/update.sh` to get it and the key section it needs.

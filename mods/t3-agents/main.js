@@ -10,6 +10,7 @@ import { stopsInit, stopsEnd, stop, focusRoot, enter, pressed, justClosed } from
 import { menuJump } from "./list.js";
 import { MOTION, planMotion, flying, leavingRows } from "./motion.js";
 import { agentEntries, agentStatus, STACK, RANK, SECTION } from "./rows.js";
+import { nestWorktrees } from "./nest.js";
 import { sidebarParts } from "./sidebar.js";
 const SORTS = [
   { id: "priority", label: "Priority", icon: "clock" },
@@ -209,6 +210,11 @@ export default class Agents extends View {
       const id = byPriority ? `sec-${r}` : `sp-${a.space}`;
       if (groups.at(-1)?.id === id) groups.at(-1).members.push(a);
       else groups.push({ id, label: byPriority ? SECTION[r] : a.space_name || "", space: byPriority ? null : a.space, members: [a] });
+    }
+    // Grouped, a worktree's group hangs under its checkout's, as in Spaces; the walk (cmd-]) follows what's drawn.
+    if (!byPriority) {
+      groups.splice(pinned.length, Infinity, ...nestWorktrees(groups.slice(pinned.length), shared("space.worktrees") ?? {}));
+      list = groups.flatMap((g) => g.members);
     }
     // Every top-level agent, in its group or not. A sub-agent with no pane can only open as a peek, a popup over the work. A folded group
     // counts: Idle folds by default, and leaving a row there would take it off the walk, with no key back.
